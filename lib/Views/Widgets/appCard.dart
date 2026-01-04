@@ -1,6 +1,6 @@
-import 'dart:ui'; // Required for BackdropFilter
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart'; // 🟢 IMPORT THIS
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:mnivesh_store/Themes/AppTextStyle.dart';
 import '../../Models/appModel.dart';
 import '../../Providers/download_state_provider.dart';
@@ -58,22 +58,16 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
     return colorMap[widget.app.colorKey.toLowerCase()] ?? colorMap['violet']!;
   }
 
-  // 🟢 HELPER: Strip HTML for the small preview card
   String _parseHtmlForPreview(String htmlString) {
-    // Replace block tags with newlines for spacing in preview
     var text = htmlString.replaceAll(RegExp(r'<br\s*/?>'), '\n');
     text = text.replaceAll(RegExp(r'</p>'), '\n\n');
     text = text.replaceAll(RegExp(r'</li>'), '\n');
-
-    // Remove all remaining HTML tags
     text = text.replaceAll(RegExp(r'<[^>]*>'), '');
-
-    // Basic entity decoding
-    text = text.replaceAll('&nbsp;', ' ')
+    text = text
+        .replaceAll('&nbsp;', ' ')
         .replaceAll('&amp;', '&')
         .replaceAll('&lt;', '<')
         .replaceAll('&gt;', '>');
-
     return text.trim();
   }
 
@@ -83,7 +77,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
         opaque: false,
         barrierColor: Colors.black54,
         barrierDismissible: true,
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
@@ -97,15 +91,15 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                 ),
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 90),
-                    child: Hero(
-                      tag: widget.app.packageName,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: _ExpandedCardContent(
-                          parentWidget: widget,
-                          activeColor: activeColor,
-                        ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 90,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: _ExpandedCardContent(
+                        parentWidget: widget,
+                        activeColor: activeColor,
                       ),
                     ),
                   ),
@@ -121,44 +115,69 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
   @override
   Widget build(BuildContext context) {
     final Color baseDarkBg = const Color(0xFF1E1E2C);
-    final Color darkButtonBg = Color.alphaBlend(activeColor.withOpacity(0.1), const Color(0xFF151520));
-    final Color cardBgColor = Color.alphaBlend(activeColor.withOpacity(0.04), baseDarkBg);
-    final Color lightContentColor = Color.lerp(activeColor, Colors.white, 0.85)!;
+    final Color darkButtonBg = Color.alphaBlend(
+      activeColor.withOpacity(0.1),
+      const Color(0xFF151520),
+    );
+    final Color cardBgColor = Color.alphaBlend(
+      activeColor.withOpacity(0.04),
+      baseDarkBg,
+    );
+    final Color lightContentColor = Color.lerp(
+      activeColor,
+      Colors.white,
+      0.85,
+    )!;
     final TextStyle descStyle = AppTextStyle.light.normal(Colors.grey[300]!);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Hero(
-        tag: widget.app.packageName,
-        child: Material(
-          color: Colors.transparent,
-          child: Card(
-            color: cardBgColor,
-            shadowColor: activeColor.withOpacity(0.2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-              side: BorderSide(color: activeColor.withOpacity(0.2), width: 1),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
-              child: Column(
+      child: Card(
+        color: cardBgColor,
+        shadowColor: activeColor.withOpacity(0.2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: activeColor.withOpacity(0.2), width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: 50,
-                        child: Image.network(widget.app.icon),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(widget.app.appName, style: AppTextStyle.bold.large()),
-                            const SizedBox(height: 10),
-                            Wrap(
+                  // Icon Hero
+                  Hero(
+                    tag: '${widget.app.packageName}_icon',
+                    child: SizedBox(
+                      height: 50,
+                      child: Image.network(widget.app.icon),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name Hero
+                        Hero(
+                          tag: '${widget.app.packageName}_name',
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: Text(
+                              widget.app.appName,
+                              style: AppTextStyle.bold.large(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        // Version Pill Hero
+                        Hero(
+                          tag: '${widget.app.packageName}_version',
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: Wrap(
                               spacing: 8,
                               runSpacing: 6,
                               children: [
@@ -169,102 +188,127 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                   textColor: activeColor,
                                   icon: Icons.grid_view_rounded,
                                 ),
-                                if (widget.updateAvailable && widget.installedVersion != null)
+                                if (widget.updateAvailable &&
+                                    widget.installedVersion != null)
                                   _VersionPill(
-                                    label: "Installed v${widget.installedVersion}",
+                                    label:
+                                        "Installed v${widget.installedVersion}",
                                     color: Colors.amber.withOpacity(0.1),
                                     border: Colors.amber.withOpacity(0.4),
                                     textColor: Colors.amber,
                                     icon: Icons.warning_amber_outlined,
-                                  )
+                                  ),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            InkWell(
-                              onTap: () => _openExpandedView(context),
-                              borderRadius: BorderRadius.circular(8),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      widget.updateAvailable ? "What's New" : "See Details",
-                                      style: AppTextStyle.bold.small(activeColor).copyWith(
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        InkWell(
+                          onTap: () => _openExpandedView(context),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4,
+                              horizontal: 2,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  widget.updateAvailable
+                                      ? "What's New"
+                                      : "See Details",
+                                  style: AppTextStyle.bold
+                                      .small(activeColor)
+                                      .copyWith(
                                         decoration: TextDecoration.underline,
-                                        decorationColor: activeColor.withOpacity(0.5),
+                                        decorationColor: activeColor
+                                            .withOpacity(0.5),
                                       ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 10, color: activeColor)
-                                  ],
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 10,
+                                  color: activeColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (widget.isInstalled)
+                    PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(Icons.more_vert, color: Colors.grey[400]),
+                      color: const Color(0xFF2C2C35),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                      ),
+                      onSelected: (value) {
+                        if (value == 'uninstall') widget.onUninstall();
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'uninstall',
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.delete_outline,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
+                              Text(
+                                '  Uninstall ${widget.app.appName}',
+                                style: const TextStyle(
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (widget.isInstalled)
-                        PopupMenuButton<String>(
-                          padding: EdgeInsets.zero,
-                          icon: Icon(Icons.more_vert, color: Colors.grey[400]),
-                          color: const Color(0xFF2C2C35),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                            ],
                           ),
-                          onSelected: (value) {
-                            if (value == 'uninstall') widget.onUninstall();
-                          },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: 'uninstall',
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                                  Text(
-                                    '  Uninstall ${widget.app.appName}',
-                                    style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w500),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-
-                  // 🟢 PREVIEW: Stripped HTML (Plain Text)
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withOpacity(0.12), width: 1),
+                      ],
                     ),
-                    child: Text(
-                      _parseHtmlForPreview(widget.app.description),
-                      style: descStyle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: _ActionButtons(
-                      widget: widget,
-                      activeColor: activeColor,
-                      bg: darkButtonBg,
-                      fg: lightContentColor,
-                    ),
-                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 18),
+
+              // 🔴 NO HERO HERE (Fixed Overflow)
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.12),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  _parseHtmlForPreview(widget.app.description),
+                  style: descStyle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: _ActionButtons(
+                  widget: widget,
+                  activeColor: activeColor,
+                  bg: darkButtonBg,
+                  fg: lightContentColor,
+                  packageName: widget.app.packageName,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -272,9 +316,6 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// EXPANDED CARD WIDGET
-// ---------------------------------------------------------------------------
 class _ExpandedCardContent extends StatelessWidget {
   final AppInfoCardUI parentWidget;
   final Color activeColor;
@@ -287,9 +328,19 @@ class _ExpandedCardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color baseDarkBg = Color(0xFF1E1E2C);
-    final Color cardBgColor = Color.alphaBlend(activeColor.withOpacity(0.04), baseDarkBg);
-    final Color darkButtonBg = Color.alphaBlend(activeColor.withOpacity(0.1), const Color(0xFF151520));
-    final Color lightContentColor = Color.lerp(activeColor, Colors.white, 0.85)!;
+    final Color cardBgColor = Color.alphaBlend(
+      activeColor.withOpacity(0.04),
+      baseDarkBg,
+    );
+    final Color darkButtonBg = Color.alphaBlend(
+      activeColor.withOpacity(0.1),
+      const Color(0xFF151520),
+    );
+    final Color lightContentColor = Color.lerp(
+      activeColor,
+      Colors.white,
+      0.85,
+    )!;
 
     return SafeArea(
       child: Container(
@@ -302,7 +353,7 @@ class _ExpandedCardContent extends StatelessWidget {
               color: Colors.black.withOpacity(0.4),
               blurRadius: 30,
               spreadRadius: 5,
-            )
+            ),
           ],
         ),
         child: Column(
@@ -313,15 +364,27 @@ class _ExpandedCardContent extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      parentWidget.app.appName,
-                      style: AppTextStyle.bold.large().copyWith(fontSize: 22),
-                      overflow: TextOverflow.ellipsis,
+                    // Name Hero Destination
+                    child: Hero(
+                      tag: '${parentWidget.app.packageName}_name',
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Text(
+                          parentWidget.app.appName,
+                          style: AppTextStyle.bold.large().copyWith(
+                            fontSize: 22,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white70,
+                    ),
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.white.withOpacity(0.1),
                     ),
@@ -339,47 +402,67 @@ class _ExpandedCardContent extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        SizedBox(
-                          height: 60,
-                          child: Image.network(parentWidget.app.icon),
+                        // Icon Hero Destination
+                        Hero(
+                          tag: '${parentWidget.app.packageName}_icon',
+                          child: SizedBox(
+                            height: 60,
+                            child: Image.network(parentWidget.app.icon),
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 6,
-                              children: [
-                                _VersionPill(
-                                  label: "v${parentWidget.app.version}",
-                                  color: activeColor.withOpacity(0.15),
-                                  border: activeColor.withOpacity(0.4),
-                                  textColor: activeColor,
-                                  icon: Icons.grid_view_rounded,
+                            // Version Pill Hero Destination
+                            Hero(
+                              tag: '${parentWidget.app.packageName}_version',
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  children: [
+                                    _VersionPill(
+                                      label: "v${parentWidget.app.version}",
+                                      color: activeColor.withOpacity(0.15),
+                                      border: activeColor.withOpacity(0.4),
+                                      textColor: activeColor,
+                                      icon: Icons.grid_view_rounded,
+                                    ),
+                                    if (parentWidget.updateAvailable &&
+                                        parentWidget.installedVersion != null)
+                                      _VersionPill(
+                                        label:
+                                            "Installed v${parentWidget.installedVersion}",
+                                        color: Colors.amber.withOpacity(0.1),
+                                        border: Colors.amber.withOpacity(0.4),
+                                        textColor: Colors.amber,
+                                        icon: Icons.warning_amber_outlined,
+                                      ),
+                                  ],
                                 ),
-                                if (parentWidget.updateAvailable && parentWidget.installedVersion != null)
-                                  _VersionPill(
-                                    label: "Installed v${parentWidget.installedVersion}",
-                                    color: Colors.amber.withOpacity(0.1),
-                                    border: Colors.amber.withOpacity(0.4),
-                                    textColor: Colors.amber,
-                                    icon: Icons.warning_amber_outlined,
-                                  )
-                              ],
+                              ),
                             ),
                             const SizedBox(height: 5),
                             if (!parentWidget.isInstalled)
-                              Text("Not Installed", style: AppTextStyle.light.small(Colors.grey)),
+                              Text(
+                                "Not Installed",
+                                style: AppTextStyle.light.small(Colors.grey),
+                              ),
                           ],
-                        )
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
 
-                    // 🟢 CHANGELOG: Render as HTML
-                    if (parentWidget.app.changelog != null && parentWidget.app.changelog!.isNotEmpty) ...[
-                      Text("What's New", style: AppTextStyle.bold.large(activeColor)),
+                    // Changelog
+                    if (parentWidget.app.changelog != null &&
+                        parentWidget.app.changelog!.isNotEmpty) ...[
+                      Text(
+                        "What's New",
+                        style: AppTextStyle.bold.large(activeColor),
+                      ),
                       const SizedBox(height: 12),
                       Container(
                         width: double.infinity,
@@ -387,28 +470,40 @@ class _ExpandedCardContent extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: activeColor.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: activeColor.withOpacity(0.2), width: 1),
+                          border: Border.all(
+                            color: activeColor.withOpacity(0.2),
+                            width: 1,
+                          ),
                         ),
                         child: HtmlWidget(
                           parentWidget.app.changelog!,
-                          textStyle: AppTextStyle.light.normal(Colors.white.withOpacity(0.9)),
+                          textStyle: AppTextStyle.light.normal(
+                            Colors.white.withOpacity(0.9),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
                     ],
 
-                    // 🟢 FULL DESCRIPTION: Render as HTML
-                    Text("About this App", style: AppTextStyle.bold.large(activeColor)),
+                    Text(
+                      "About this App",
+                      style: AppTextStyle.bold.large(activeColor),
+                    ),
                     const SizedBox(height: 12),
+
+                    // 🔴 NO HERO HERE (Simple HTML Widget)
                     HtmlWidget(
                       parentWidget.app.description,
-                      textStyle: AppTextStyle.light.normal(Colors.grey[300]!).copyWith(height: 1.6, fontSize: 15),
-                      // Custom styles for specific tags to match your dark theme
+                      textStyle: AppTextStyle.light
+                          .normal(Colors.grey[300]!)
+                          .copyWith(height: 1.6, fontSize: 15),
                       customStylesBuilder: (element) {
-                        if (element.localName == 'strong' || element.localName == 'b') {
+                        if (element.localName == 'strong' ||
+                            element.localName == 'b') {
                           return {'color': 'white', 'font-weight': 'bold'};
                         }
-                        if (element.localName == 'h1' || element.localName == 'h2') {
+                        if (element.localName == 'h1' ||
+                            element.localName == 'h2') {
                           return {'color': 'white', 'margin-bottom': '10px'};
                         }
                         return null;
@@ -424,8 +519,12 @@ class _ExpandedCardContent extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.2),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-                border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(24),
+                ),
+                border: Border(
+                  top: BorderSide(color: Colors.white.withOpacity(0.05)),
+                ),
               ),
               child: SizedBox(
                 width: double.infinity,
@@ -435,6 +534,7 @@ class _ExpandedCardContent extends StatelessWidget {
                   activeColor: activeColor,
                   bg: darkButtonBg,
                   fg: lightContentColor,
+                  packageName: parentWidget.app.packageName,
                 ),
               ),
             ),
@@ -445,7 +545,10 @@ class _ExpandedCardContent extends StatelessWidget {
   }
 }
 
-// ... [The Helper Widgets _VersionPill, _ActionButtons, _Button, _OpenButton remain exactly the same as previous response] ...
+// ---------------------------------------------------------------------------
+// HELPER WIDGETS
+// ---------------------------------------------------------------------------
+
 class _VersionPill extends StatelessWidget {
   final String label;
   final Color color;
@@ -453,14 +556,31 @@ class _VersionPill extends StatelessWidget {
   final Color textColor;
   final IconData icon;
 
-  const _VersionPill({required this.label, required this.color, required this.border, required this.textColor, required this.icon});
+  const _VersionPill({
+    required this.label,
+    required this.color,
+    required this.border,
+    required this.textColor,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(40), border: Border.all(color: border, width: 1)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 14, color: textColor), const SizedBox(width: 5), Text(label, style: AppTextStyle.bold.small(textColor))]),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(40),
+        border: Border.all(color: border, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: textColor),
+          const SizedBox(width: 5),
+          Text(label, style: AppTextStyle.bold.small(textColor)),
+        ],
+      ),
     );
   }
 }
@@ -470,21 +590,92 @@ class _ActionButtons extends StatelessWidget {
   final Color activeColor;
   final Color bg;
   final Color fg;
+  final String packageName;
 
-  const _ActionButtons({required this.widget, required this.activeColor, required this.bg, required this.fg});
+  const _ActionButtons({
+    required this.widget,
+    required this.activeColor,
+    required this.bg,
+    required this.fg,
+    required this.packageName,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isChecking) return Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: fg)));
-    if (widget.downloadState != null && widget.downloadState!.isDownloading) return DownloadButton(activeColor: activeColor, bg: bg, fg: fg, progress: widget.downloadState!.progress, onCancel: widget.onCancelDownload);
-    if (widget.isInstalled) {
-      return Row(children: [
-        Expanded(child: widget.updateAvailable ? _Button(icon: Icons.system_update, label: "Update", onTap: widget.onDownload, bg: bg, fg: fg, activeColor: activeColor) : _Button(icon: Icons.check_circle, label: "Installed", onTap: widget.onOpenApp, bg: bg, fg: fg, activeColor: activeColor)),
-        const SizedBox(width: 12),
-        _OpenButton(activeColor: activeColor, onTap: widget.onOpenApp),
-      ]);
+    Widget buildMainBtn() {
+      if (widget.isChecking)
+        return Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2, color: fg),
+          ),
+        );
+      if (widget.downloadState != null && widget.downloadState!.isDownloading)
+        return DownloadButton(
+          activeColor: activeColor,
+          bg: bg,
+          fg: fg,
+          progress: widget.downloadState!.progress,
+          onCancel: widget.onCancelDownload,
+        );
+      if (widget.isInstalled) {
+        return widget.updateAvailable
+            ? _Button(
+                icon: Icons.system_update,
+                label: "Update",
+                onTap: widget.onDownload,
+                bg: bg,
+                fg: fg,
+                activeColor: activeColor,
+              )
+            : _Button(
+                icon: Icons.check_circle,
+                label: "Installed",
+                onTap: widget.onOpenApp,
+                bg: bg,
+                fg: fg,
+                activeColor: activeColor,
+              );
+      }
+      return _Button(
+        icon: Icons.download_rounded,
+        label: "Download Now",
+        onTap: widget.onDownload,
+        bg: bg,
+        fg: fg,
+        activeColor: activeColor,
+      );
     }
-    return _Button(icon: Icons.download_rounded, label: "Download Now", onTap: widget.onDownload, bg: bg, fg: fg, activeColor: activeColor);
+
+    return Row(
+      children: [
+        Expanded(
+          // Main Button Hero
+          child: Hero(
+            tag: '${packageName}_btn_main',
+            child: Material(
+              type: MaterialType.transparency,
+              child: buildMainBtn(),
+            ),
+          ),
+        ),
+        if (widget.isInstalled) ...[
+          const SizedBox(width: 12),
+          // Open Button Hero
+          Hero(
+            tag: '${packageName}_btn_open',
+            child: Material(
+              type: MaterialType.transparency,
+              child: _OpenButton(
+                activeColor: activeColor,
+                onTap: widget.onOpenApp,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
 
@@ -496,14 +687,37 @@ class _Button extends StatelessWidget {
   final Color fg;
   final Color activeColor;
 
-  const _Button({required this.icon, required this.label, required this.onTap, required this.bg, required this.fg, required this.activeColor});
+  const _Button({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.bg,
+    required this.fg,
+    required this.activeColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onTap,
-      style: ElevatedButton.styleFrom(backgroundColor: bg, foregroundColor: fg, elevation: 0, side: BorderSide(color: activeColor, width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: fg, size: 20), const SizedBox(width: 8), Text(label, style: AppTextStyle.bold.normal(fg).copyWith(height: 1.3))]),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: bg,
+        foregroundColor: fg,
+        elevation: 0,
+        side: BorderSide(color: activeColor, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: fg, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: AppTextStyle.bold.normal(fg).copyWith(height: 1.3),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -516,6 +730,23 @@ class _OpenButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(width: 50, height: 50, child: ElevatedButton(onPressed: onTap, style: ElevatedButton.styleFrom(padding: EdgeInsets.zero, backgroundColor: activeColor.withOpacity(0.15), foregroundColor: activeColor, elevation: 0, side: BorderSide(color: activeColor.withOpacity(0.5), width: 1), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: Icon(Icons.open_in_new, color: activeColor, size: 18)));
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          backgroundColor: activeColor.withOpacity(0.15),
+          foregroundColor: activeColor,
+          elevation: 0,
+          side: BorderSide(color: activeColor.withOpacity(0.5), width: 1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: Icon(Icons.open_in_new, color: activeColor, size: 18),
+      ),
+    );
   }
 }

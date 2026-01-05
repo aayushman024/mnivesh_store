@@ -603,7 +603,7 @@ class _ActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget buildMainBtn() {
-      if (widget.isChecking)
+      if (widget.isChecking) {
         return Center(
           child: SizedBox(
             width: 20,
@@ -611,7 +611,8 @@ class _ActionButtons extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 2, color: fg),
           ),
         );
-      if (widget.downloadState != null && widget.downloadState!.isDownloading)
+      }
+      if (widget.downloadState != null && widget.downloadState!.isDownloading) {
         return DownloadButton(
           activeColor: activeColor,
           bg: bg,
@@ -619,6 +620,7 @@ class _ActionButtons extends StatelessWidget {
           progress: widget.downloadState!.progress,
           onCancel: widget.onCancelDownload,
         );
+      }
       if (widget.isInstalled) {
         return widget.updateAvailable
             ? _Button(

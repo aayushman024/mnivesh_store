@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-// Imports
+
 import '../../Models/appModel.dart';
-import '../../Providers/app_provider.dart'; // Assuming refreshTriggerProvider is here
+import '../../Providers/app_provider.dart';
 import '../../Services/download_service.dart';
 import '../../Providers/download_state_provider.dart';
 import '../Views/Widgets/appCard.dart';
@@ -48,25 +48,15 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
     }
   }
 
-  @override
-  void didUpdateWidget(covariant AppInfoCardContainer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.app.version != widget.app.version ||
-        oldWidget.app.packageName != widget.app.packageName) {
-      _checkAppStatus();
-    }
-  }
-
   Future<void> _checkAppStatus() async {
     if (!mounted) return;
 
     bool? installed = await InstalledApps.isAppInstalled(widget.app.packageName);
-    bool updateNeeded = false;
     String? currentVersion;
+    bool updateNeeded = false;
 
     if (installed == true) {
       AppInfo? appInfo = await InstalledApps.getAppInfo(widget.app.packageName);
-
       if (appInfo != null) {
         currentVersion = appInfo.versionName;
         if (currentVersion != widget.app.version) {
@@ -142,13 +132,14 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
           filePath,
         );
 
-        if (mounted) {
+        if(mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Download complete! Installing...')),
           );
         }
 
         await DownloadService.installApk(filePath);
+        // Add delay to allow package manager to update
         await Future.delayed(const Duration(seconds: 2));
         await _checkAppStatus();
 
@@ -162,29 +153,22 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
     if (downloadState?.taskId != null) {
       await DownloadService.cancelDownload(downloadState!.taskId!);
       ref.read(downloadStateProvider.notifier).removeDownload(widget.app.packageName);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Download cancelled')),
-        );
-      }
     }
-  }
-
-  Future<void> _uninstallApp() async {
-    await InstalledApps.uninstallApp(widget.app.packageName);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Listen for global refresh events
     ref.listen(refreshTriggerProvider, (previous, next) {
       _checkAppStatus();
     });
 
-    final downloadState = ref.watch(downloadStateProvider)[widget.app.packageName];
+    // FIX 4: Optimization using select
+    // We only watch the specific entry for this package to avoid rebuilding
+    // all cards when one updates.
+    final downloadState = ref.watch(
+      downloadStateProvider.select((state) => state[widget.app.packageName]),
+    );
 
-    // Pass data and callbacks to the Pure UI Widget
     return AppInfoCardUI(
       app: widget.app,
       isChecking: _isChecking,
@@ -194,7 +178,9 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
       downloadState: downloadState,
       onDownload: _startDownload,
       onCancelDownload: _cancelDownload,
-      onUninstall: _uninstallApp,
+      onUninstall: () async {
+        await InstalledApps.uninstallApp(widget.app.packageName);
+      },
       onOpenApp: () => InstalledApps.startApp(widget.app.packageName),
     );
   }

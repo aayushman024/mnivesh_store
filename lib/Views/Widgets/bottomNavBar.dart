@@ -122,7 +122,7 @@ class _NavItem extends StatelessWidget {
         curve: Curves.easeOutCubic,
         padding: EdgeInsets.symmetric(
           horizontal: isActive ? 20 : 16,
-          vertical: 10,
+          vertical: 12,
         ),
         decoration: BoxDecoration(
           color: isActive ? color.withOpacity(0.15) : Colors.transparent,

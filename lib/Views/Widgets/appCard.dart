@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // REQUIRED
 import 'package:mnivesh_store/Themes/AppTextStyle.dart';
 import '../../Models/appModel.dart';
 import '../../Providers/download_state_provider.dart';
@@ -39,6 +40,7 @@ class AppInfoCardUI extends StatefulWidget {
 
 class _AppInfoCardUIState extends State<AppInfoCardUI> {
   Color get activeColor {
+    // ... (Your existing color map logic remains exactly the same)
     final Map<String, Color> colorMap = {
       'red': const Color(0xFFE57373),
       'yellow': const Color(0xFFFFE082),
@@ -59,6 +61,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
   }
 
   String _parseHtmlForPreview(String htmlString) {
+    // ... (Your existing HTML parsing logic remains exactly the same)
     var text = htmlString.replaceAll(RegExp(r'<br\s*/?>'), '\n');
     text = text.replaceAll(RegExp(r'</p>'), '\n\n');
     text = text.replaceAll(RegExp(r'</li>'), '\n');
@@ -77,12 +80,15 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
         opaque: false,
         barrierColor: Colors.black54,
         barrierDismissible: true,
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: const Duration(milliseconds: 500), // Slightly slower for drama
+        reverseTransitionDuration: const Duration(milliseconds: 400),
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
             child: Stack(
               children: [
+                // Optimized Blur: Only renders once the navigation settles if needed,
+                // but kept here for your design requirements.
                 Positioned.fill(
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -112,8 +118,24 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
     );
   }
 
+  // Helper for Shuttle (Lightweight Render during flight)
+  Widget _flightShuttleBuilder(
+      BuildContext flightContext,
+      Animation<double> animation,
+      HeroFlightDirection flightDirection,
+      BuildContext fromHeroContext,
+      BuildContext toHeroContext,
+      ) {
+    final Hero toHero = toHeroContext.widget as Hero;
+    return Material(
+      type: MaterialType.transparency,
+      child: toHero.child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // ... (Your existing color definitions)
     final Color baseDarkBg = const Color(0xFF1E1E2C);
     final Color darkButtonBg = Color.alphaBlend(
       activeColor.withOpacity(0.1),
@@ -147,12 +169,20 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Icon Hero
+                  // --- OPTIMIZED HERO ICON ---
                   Hero(
                     tag: '${widget.app.packageName}_icon',
+                    flightShuttleBuilder: _flightShuttleBuilder, // FIX 1
                     child: SizedBox(
                       height: 50,
-                      child: Image.network(widget.app.icon),
+                      width: 50, // Explicit width helps layout
+                      child: CachedNetworkImage( // FIX 2
+                        imageUrl: widget.app.icon,
+                        memCacheHeight: 150, // Optimize Memory
+                        memCacheWidth: 150,
+                        placeholder: (context, url) => Container(color: Colors.white10),
+                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -160,21 +190,26 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Name Hero
+                        // --- OPTIMIZED HERO NAME ---
                         Hero(
                           tag: '${widget.app.packageName}_name',
+                          flightShuttleBuilder: _flightShuttleBuilder, // FIX 1
                           child: Material(
                             type: MaterialType.transparency,
                             child: Text(
                               widget.app.appName,
                               style: AppTextStyle.bold.large(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis, // Prevents layout jumps
                             ),
                           ),
                         ),
                         const SizedBox(height: 10),
+
                         // Version Pill Hero
                         Hero(
                           tag: '${widget.app.packageName}_version',
+                          flightShuttleBuilder: _flightShuttleBuilder,
                           child: Material(
                             type: MaterialType.transparency,
                             child: Wrap(
@@ -192,7 +227,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                     widget.installedVersion != null)
                                   _VersionPill(
                                     label:
-                                        "Installed v${widget.installedVersion}",
+                                    "Installed v${widget.installedVersion}",
                                     color: Colors.amber.withOpacity(0.1),
                                     border: Colors.amber.withOpacity(0.4),
                                     textColor: Colors.amber,
@@ -202,6 +237,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                             ),
                           ),
                         ),
+                        // ... Rest of the column (InkWell, etc) remains the same
                         const SizedBox(height: 12),
                         InkWell(
                           onTap: () => _openExpandedView(context),
@@ -221,10 +257,10 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                   style: AppTextStyle.bold
                                       .small(activeColor)
                                       .copyWith(
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: activeColor
-                                            .withOpacity(0.5),
-                                      ),
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: activeColor
+                                        .withOpacity(0.5),
+                                  ),
                                 ),
                                 const SizedBox(width: 4),
                                 Icon(
@@ -239,6 +275,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                       ],
                     ),
                   ),
+                  // ... Popup Menu code remains the same
                   if (widget.isInstalled)
                     PopupMenuButton<String>(
                       padding: EdgeInsets.zero,
@@ -277,7 +314,6 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
               ),
               const SizedBox(height: 18),
 
-              // 🔴 NO HERO HERE (Fixed Overflow)
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -325,8 +361,24 @@ class _ExpandedCardContent extends StatelessWidget {
     required this.activeColor,
   });
 
+  // Reusing the shuttle here ensures smooth transition back
+  Widget _flightShuttleBuilder(
+      BuildContext flightContext,
+      Animation<double> animation,
+      HeroFlightDirection flightDirection,
+      BuildContext fromHeroContext,
+      BuildContext toHeroContext,
+      ) {
+    final Hero toHero = toHeroContext.widget as Hero;
+    return Material(
+      type: MaterialType.transparency,
+      child: toHero.child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // ... (Colors definition remains same)
     const Color baseDarkBg = Color(0xFF1E1E2C);
     final Color cardBgColor = Color.alphaBlend(
       activeColor.withOpacity(0.04),
@@ -367,6 +419,7 @@ class _ExpandedCardContent extends StatelessWidget {
                     // Name Hero Destination
                     child: Hero(
                       tag: '${parentWidget.app.packageName}_name',
+                      flightShuttleBuilder: _flightShuttleBuilder, // FIX
                       child: Material(
                         type: MaterialType.transparency,
                         child: Text(
@@ -405,9 +458,16 @@ class _ExpandedCardContent extends StatelessWidget {
                         // Icon Hero Destination
                         Hero(
                           tag: '${parentWidget.app.packageName}_icon',
+                          flightShuttleBuilder: _flightShuttleBuilder, // FIX
                           child: SizedBox(
                             height: 60,
-                            child: Image.network(parentWidget.app.icon),
+                            width: 60,
+                            child: CachedNetworkImage( // FIX
+                              imageUrl: parentWidget.app.icon,
+                              memCacheHeight: 150,
+                              memCacheWidth: 150,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -417,6 +477,7 @@ class _ExpandedCardContent extends StatelessWidget {
                             // Version Pill Hero Destination
                             Hero(
                               tag: '${parentWidget.app.packageName}_version',
+                              flightShuttleBuilder: _flightShuttleBuilder,
                               child: Material(
                                 type: MaterialType.transparency,
                                 child: Wrap(
@@ -434,7 +495,7 @@ class _ExpandedCardContent extends StatelessWidget {
                                         parentWidget.installedVersion != null)
                                       _VersionPill(
                                         label:
-                                            "Installed v${parentWidget.installedVersion}",
+                                        "Installed v${parentWidget.installedVersion}",
                                         color: Colors.amber.withOpacity(0.1),
                                         border: Colors.amber.withOpacity(0.4),
                                         textColor: Colors.amber,
@@ -444,6 +505,7 @@ class _ExpandedCardContent extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            // ... Rest of column
                             const SizedBox(height: 5),
                             if (!parentWidget.isInstalled)
                               Text(
@@ -454,9 +516,8 @@ class _ExpandedCardContent extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // ... (Rest of scroll content logic same as before)
                     const SizedBox(height: 24),
-
-                    // Changelog
                     if (parentWidget.app.changelog != null &&
                         parentWidget.app.changelog!.isNotEmpty) ...[
                       Text(
@@ -491,7 +552,6 @@ class _ExpandedCardContent extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // 🔴 NO HERO HERE (Simple HTML Widget)
                     HtmlWidget(
                       parentWidget.app.description,
                       textStyle: AppTextStyle.light

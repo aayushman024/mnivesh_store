@@ -21,6 +21,9 @@ dependencies:
   open_filex: ^4.7.0
   flutter_widget_from_html: ^0.17.1
   flutter_launcher_icons: ^0.14.4
+  firebase_core: ^4.3.0
+  firebase_messaging: ^16.1.0
+  app_links: ^6.4.1
 
 dev_dependencies:
   flutter_test:

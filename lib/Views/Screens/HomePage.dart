@@ -8,6 +8,8 @@ import '../Widgets/homeAppBar.dart';
 import '../../Models/appModel.dart';
 import '../../Providers/app_provider.dart';
 import '../../Services/permission_helper.dart';
+import 'dart:async'; // Add this
+import 'package:app_links/app_links.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -20,6 +22,10 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
   // 0 = Installed (Default), 1 = Updates, 2 = Store
   int _currentIndex = 0;
 
+  //deep links
+  late AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+
   // Local state to track app status for filtering
   final Map<String, bool> _installedStatus = {};
   final Map<String, bool> _updateStatus = {};
@@ -30,11 +36,13 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _askPermissions();
+    _initDeepLinks();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _linkSubscription?.cancel();
     super.dispose();
   }
 
@@ -45,6 +53,28 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
       if (appsValue.hasValue) {
         _checkAppsStatus(appsValue.value!);
       }
+    }
+  }
+
+  Future<void> _initDeepLinks() async {
+    _appLinks = AppLinks();
+
+    // Listen for deep links
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
+      _handleDeepLink(uri);
+    });
+  }
+
+  void _handleDeepLink(Uri uri) {
+    // Parse "mnivesh://store?tab=updates"
+    final tab = uri.queryParameters['tab'];
+
+    if (tab == 'updates') {
+      _onTabTapped(1);
+    } else if (tab == 'store') {
+      _onTabTapped(2);
+    } else if (tab == 'installed') {
+      _onTabTapped(0);
     }
   }
 

@@ -90,9 +90,14 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                 // Optimized Blur: Only renders once the navigation settles if needed,
                 // but kept here for your design requirements.
                 Positioned.fill(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(color: Colors.black.withOpacity(0.2)),
+                  child: GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(color: Colors.black.withOpacity(0.2)),
+                    ),
                   ),
                 ),
                 Center(
@@ -172,11 +177,11 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                   // --- OPTIMIZED HERO ICON ---
                   Hero(
                     tag: '${widget.app.packageName}_icon',
-                    flightShuttleBuilder: _flightShuttleBuilder, // FIX 1
+                    flightShuttleBuilder: _flightShuttleBuilder,
                     child: SizedBox(
                       height: 50,
-                      width: 50, // Explicit width helps layout
-                      child: CachedNetworkImage( // FIX 2
+                      width: 50,
+                      child: CachedNetworkImage(
                         imageUrl: widget.app.icon,
                         memCacheHeight: 150, // Optimize Memory
                         memCacheWidth: 150,
@@ -314,21 +319,24 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
               ),
               const SizedBox(height: 18),
 
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.12),
-                    width: 1,
+              GestureDetector(
+                onTap: ()=> _openExpandedView(context),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.12),
+                      width: 1,
+                    ),
                   ),
-                ),
-                child: Text(
-                  _parseHtmlForPreview(widget.app.description),
-                  style: descStyle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  child: Text(
+                    _parseHtmlForPreview(widget.app.description),
+                    style: descStyle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
